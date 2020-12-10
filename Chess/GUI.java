@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
+
 import java.util.ArrayList;
 
 public class GUI implements ActionListener{
@@ -23,6 +24,9 @@ public class GUI implements ActionListener{
 
     ArrayList<chessObject> chessData = new ArrayList<chessObject>();
     ArrayList<chessObject> TchessData = new ArrayList<chessObject>();
+
+    // 暫存棋(選擇)
+    chessObject tchessObject = null;
 
     public GUI() {        
         frm.setSize(1000, 700);
@@ -113,21 +117,150 @@ public class GUI implements ActionListener{
         chessObject co = (chessObject)this.chessData.stream()
                             .filter(c -> c.chessId.equals(but.getName()))
                             .findFirst().orElse(null);
-
-
+        // 是否有人贏
+        boolean redWin = false;
+        boolean blackWin = false;
         
+        System.out.println(co.playerColor + " " + co.status + " " + co.x + " " + co.y + " " + co.no);
 
-        // 翻牌
+        /* 暫存是否為null(選取棋) */
+        if (tchessObject == null) {
+            // 翻牌
+            if (co.status.equals(chessStatus.miss.no)) {
+                // 翻牌
+                co.status = chessStatus.open.no;
+                co.setIcon();
+                co.showPosition();
+                System.out.println("翻牌");
+                // 回合方輪流
+                roundColor.switchRoundColor(co);
+                return;
+            }
+            // 狀態是為空與物件與回合方不相同
+            if (co.status.equals(chessStatus.air.no) || !roundColor.s.no.equals(co.playerColor)) {
+                System.out.println("空/不相同");
+                return;
+            }
+
+            // 選取牌
+            tchessObject = (chessObject)this.chessData.stream()
+                            .filter(c -> c.equals(co))
+                            .findFirst().orElse(null);;
+            tchessObject.setIconSel();
+            System.out.println("選擇牌");
+            return;
+        }
+
+        // 是否與暫存相同
+        if (co.equals(tchessObject)) {
+            // 選取還原
+            System.out.println("還原");
+            tchessObject.setIcon();
+            tchessObject = null;
+            return;
+        }
+
+        // 是否為miss
         if (co.status.equals(chessStatus.miss.no)) {
+            // 翻牌
             co.status = chessStatus.open.no;
             co.setIcon();
             co.showPosition();
+            System.out.println("翻牌");
+            // 回合方輪流
+            roundColor.switchRoundColor(co);
+            tchessObject.setIcon();
+            tchessObject = null;
+            return;
+        }
+
+        // 是否為空
+        if (co.status.equals(chessStatus.air.no)) {
+            System.out.println("移動");
+            tchessObject.setIcon();
+            switchChess(co);
+            tchessObject = null;
             // 回合方輪流
             roundColor.switchRoundColor(co);
             return;
         }
 
-        // 下方明天寫(遊戲流程)
+        // 是否跟暫存方相同
+        if (co.playerColor.equals(tchessObject.playerColor)) {
+            tchessObject.setIcon();
+            tchessObject = (chessObject)this.chessData.stream()
+                            .filter(c -> c.equals(co))
+                            .findFirst().orElse(null);;;
+            tchessObject.setIconSel();
+            System.out.println("選擇牌(暫存更改)");
+            return;
+        }
 
+        // 比大小判斷 (先測試甚麼吃甚麼都可以吃)
+        co.status = chessStatus.air.no;
+        co.setAir();
+        tchessObject.setIcon();
+        this.switchChess(co);
+        System.out.println(co.playerColor + " " + co.status + " " + co.x + " " + co.y + " " + co.no + " " + co.URL);
+        System.out.println(tchessObject.playerColor + " " + tchessObject.status + " " + tchessObject.x + " " + tchessObject.y + " " + tchessObject.no + " " + tchessObject.URL);
+        
+        tchessObject = null;
+        // 回合方輪流
+        roundColor.switchRoundColor(co);
+        System.out.println("吃");
+
+
+        /* 判斷誰贏了 */
+        // 哪一方air先到16就是對方獲勝
+        blackWin = chessData.stream().filter(a -> a.status.equals(chessStatus.air.no) &&
+                                         a.playerColor.equals(chessWeight.PlayerColor.red.name()))
+                                         .count() == 16;
+        redWin = chessData.stream().filter(a -> a.status.equals(chessStatus.air.no) &&
+                                        a.playerColor.equals(chessWeight.PlayerColor.black.name()))
+                                        .count() == 16;
+        
+        if (redWin) {
+            System.out.println("紅方獲勝");
+        }
+
+        if (blackWin) {
+            System.out.println("黑方獲勝");
+        }
+
+    }
+
+    // 交換按鈕(所有資料)
+    public void switchChess(chessObject co){
+        System.out.println(co.playerColor + " " + co.status + " " + co.x + " " + co.y + " " + co.no);
+        System.out.println(tchessObject.playerColor + " " + tchessObject.status + " " + tchessObject.x + " " + tchessObject.y + " " + tchessObject.no);
+        // 暫存
+        chessObject t = new chessObject("", 0, "", "");
+        t.chessId = co.chessId;
+        t.no = co.no;   // 棋名稱
+        t.status = co.status;   // 棋狀態
+        t.weight = co.weight;  // 棋權重
+        t.URL = co.URL;  // 棋圖片位置
+        t.playerColor = co.playerColor;  // 棋子顏色(哪一方)
+        t.but.setName(co.but.getName());
+        t.but.setIcon(co.but.getIcon());
+        System.out.println(" t : " + t.playerColor + " " + t.status + " " + t.x + " " + t.y + " " + t.no);
+        // 交換
+        co.chessId = tchessObject.chessId;
+        co.no = tchessObject.no;   // 棋名稱
+        co.status = tchessObject.status;   // 棋狀態
+        co.weight = tchessObject.weight;  // 棋權重
+        co.URL = tchessObject.URL;  // 棋圖片位置
+        co.playerColor = tchessObject.playerColor;  // 棋子顏色(哪一方)
+        co.but.setName(tchessObject.but.getName());
+        co.but.setIcon(tchessObject.but.getIcon());
+
+        tchessObject.chessId = t.chessId;
+        tchessObject.no = t.no;   // 棋名稱
+        tchessObject.status = t.status;   // 棋狀態
+        tchessObject.weight = t.weight;  // 棋權重
+        tchessObject.URL = t.URL;  // 棋圖片位置
+        tchessObject.playerColor = t.playerColor;  // 棋子顏色(哪一方)
+        tchessObject.but.setName(t.but.getName());
+        tchessObject.but.setIcon(t.but.getIcon());
     }
 }

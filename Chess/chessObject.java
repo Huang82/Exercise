@@ -12,8 +12,8 @@ public class chessObject {
     public int weight;  // 棋權重
     public String URL;  // 棋圖片位置
     public String playerColor;  // 棋子顏色(哪一方)
-    private int x;  // 座標
-    private int y;
+    public int x;  // 座標
+    public int y;
     
     chessObject (String no, int weight, String URL, String playColor) {
         // 設定按鈕id與chessId同步
@@ -35,6 +35,13 @@ public class chessObject {
         this.but.setIcon(new ImageIcon(URL));
     }
     
+    public void setIconSel() {
+        this.but.setIcon(new ImageIcon(String.format(".\\Image\\%s_Sel.png", this.no)));
+    }
+
+    public void setAir() {
+        this.but.setIcon(new ImageIcon(".\\Image\\air.png"));
+    }
     public void setPosition (int x , int y) {
         this.x = x;
         this.y = y;
