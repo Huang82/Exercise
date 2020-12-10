@@ -128,10 +128,7 @@ public class GUI implements ActionListener{
             // 翻牌
             if (co.status.equals(chessStatus.miss.no)) {
                 // 翻牌
-                co.status = chessStatus.open.no;
-                co.setIcon();
-                co.showPosition();
-                System.out.println("翻牌");
+                this.turnChrss(co);
                 // 回合方輪流
                 roundColor.switchRoundColor(co);
                 return;
@@ -142,10 +139,8 @@ public class GUI implements ActionListener{
                 return;
             }
 
-            // 選取牌
-            tchessObject = (chessObject)this.chessData.stream()
-                            .filter(c -> c.equals(co))
-                            .findFirst().orElse(null);;
+            // 選取牌存入暫存
+            tchessObject = co;
             tchessObject.setIconSel();
             System.out.println("選擇牌");
             return;
@@ -153,8 +148,9 @@ public class GUI implements ActionListener{
 
         // 是否與暫存相同
         if (co.equals(tchessObject)) {
-            // 選取還原
+            // 如果選取是相同等於不選取
             System.out.println("還原");
+            // 暫存清掉
             tchessObject.setIcon();
             tchessObject = null;
             return;
@@ -163,51 +159,126 @@ public class GUI implements ActionListener{
         // 是否為miss
         if (co.status.equals(chessStatus.miss.no)) {
             // 翻牌
-            co.status = chessStatus.open.no;
-            co.setIcon();
-            co.showPosition();
-            System.out.println("翻牌");
+            this.turnChrss(co);
             // 回合方輪流
             roundColor.switchRoundColor(co);
+            // 暫存復原無選取
             tchessObject.setIcon();
+            // 暫存清掉
             tchessObject = null;
             return;
         }
 
         // 是否為空
         if (co.status.equals(chessStatus.air.no)) {
-            System.out.println("移動");
-            tchessObject.setIcon();
-            switchChess(co);
-            tchessObject = null;
-            // 回合方輪流
-            roundColor.switchRoundColor(co);
+            // 座標相差
+            int x = Math.abs(co.x - tchessObject.x);
+            int y = Math.abs(co.y - tchessObject.y);
+            // 兩者座標加起來不超過1才可移動
+            if (x + y <= 1){
+                System.out.println("移動");
+                // 暫存復原無選取
+                tchessObject.setIcon();
+                // 跟第二個選擇的做交換
+                this.switchChess(co);
+                tchessObject = null;
+                // 回合方輪流
+                roundColor.switchRoundColor(co);
+                return;
+            }
+            System.out.println("超過移動範圍");
             return;
         }
 
-        // 是否跟暫存方相同
+        // 是否跟暫存方相同(相同就換選的牌)
         if (co.playerColor.equals(tchessObject.playerColor)) {
             tchessObject.setIcon();
-            tchessObject = (chessObject)this.chessData.stream()
-                            .filter(c -> c.equals(co))
-                            .findFirst().orElse(null);;;
+            tchessObject = co;
             tchessObject.setIconSel();
             System.out.println("選擇牌(暫存更改)");
             return;
         }
 
-        // 比大小判斷 (先測試甚麼吃甚麼都可以吃)
-        co.status = chessStatus.air.no;
-        co.setAir();
-        tchessObject.setIcon();
-        this.switchChess(co);
-        System.out.println(co.playerColor + " " + co.status + " " + co.x + " " + co.y + " " + co.no + " " + co.URL);
-        System.out.println(tchessObject.playerColor + " " + tchessObject.status + " " + tchessObject.x + " " + tchessObject.y + " " + tchessObject.no + " " + tchessObject.URL);
-        
-        tchessObject = null;
-        // 回合方輪流
-        roundColor.switchRoundColor(co);
-        System.out.println("吃");
+        // 權重比大小 之前選取的權重大於等於現在選取的就吃還要現在取的權重不等於0(0:砲) 如果吃方權重為1(1:兵)
+        if (tchessObject.weight >= co.weight || tchessObject.weight == 0 || tchessObject.weight == 1) {
+
+            int x = Math.abs(tchessObject.x - co.x);
+            int y = Math.abs(tchessObject.y - co.y);
+
+            // 若被吃方選擇權重為1(1:卒)與吃方為6(6:帥)
+            if (co.weight == 1 && tchessObject.weight == 6) {
+                System.out.println("將(帥)無法吃兵(卒)");
+                return;
+            } 
+            // 若被吃放選擇權重不是為6和1與吃方為1
+            if (co.weight != 6 && co.weight != 1 && tchessObject.weight == 1 ) {
+                System.out.println("兵(卒)無法吃除了將(帥)和卒(兵)的棋");
+                return;
+            }
+            // 吃方為砲判斷是否可以吃
+            if (x != 0 && y != 0 && tchessObject.weight == 0) {
+                System.out.println("砲無法吃((x 或 y)相差兩個都等於0)");
+                return;
+            }
+            // 吃方是否為砲(進行砲吃動作)
+            if(tchessObject.weight == 0){
+                // 判斷規則是否正確
+                boolean s = true;
+                // 若x相差為0判斷y軸
+                if (x == 0) {
+                    // 取最小和最大值
+                    int max = Math.max(tchessObject.y, co.y);
+                    int min = Math.min(tchessObject.y, co.y);
+                    // stream整筆資料count為1(代表max到min之間只有一個棋子)
+                    s = chessData.stream().filter(c -> (min < c.y && c.y < max) && 
+                                                (c.x == tchessObject.x) &&
+                                                (c.status == chessStatus.miss.no || c.status == chessStatus.open.no))
+                                                .count() == 1;
+                    System.out.println(chessData.stream().filter(c -> (min < c.y && c.y < max) && 
+                    (c.status == chessStatus.miss.no || c.status == chessStatus.open.no))
+                    .count() == 1);
+                } else {
+                    int max = Math.max(tchessObject.x, co.x);
+                    int min = Math.min(tchessObject.x, co.x);
+                    s = chessData.stream().filter(c -> (min < c.x && c.x < max) && 
+                                                 (c.y == tchessObject.y) &&
+                                                 (c.status == chessStatus.miss.no || c.status == chessStatus.open.no))
+                                                 .count() == 1;
+                    System.out.println(chessData.stream().filter(c -> (min < c.x && c.x < max) && 
+                    (c.status == chessStatus.miss.no || c.status == chessStatus.open.no))
+                    .count());
+                }
+
+                // 規則不對跳出
+                if (!s) {
+                    System.out.println("砲無法吃(規則不對)");
+                    return;
+                }
+            }
+            
+            // 判斷吃的範圍有沒有超過和吃方不行為0(0:砲)
+            if ((x + y) > 1 && tchessObject.weight != 0) {
+                System.out.println("無法吃(範圍超過)");
+                return;
+            }
+
+            // 比大小判斷 (先測試甚麼吃甚麼都可以吃)
+            co.status = chessStatus.air.no;
+            // 被吃那方改為空圖片
+            co.setAir();
+            // 吃方改為未選取圖片
+            tchessObject.setIcon();
+            // 交換
+            this.switchChess(co);
+            System.out.println(co.playerColor + " " + co.status + " " + co.x + " " + co.y + " " + co.no + " " + co.URL);
+            System.out.println(tchessObject.playerColor + " " + tchessObject.status + " " + tchessObject.x + " " + tchessObject.y + " " + tchessObject.no + " " + tchessObject.URL);
+                
+            tchessObject = null;
+            // 回合方輪流
+            roundColor.switchRoundColor(co);
+            System.out.println("吃");
+            
+        }
 
 
         /* 判斷誰贏了 */
@@ -229,8 +300,17 @@ public class GUI implements ActionListener{
 
     }
 
-    // 交換按鈕(所有資料)
-    public void switchChess(chessObject co){
+    /* 翻牌 */
+    private void turnChrss(chessObject co) {
+        co.status = chessStatus.open.no;
+        co.setIcon();
+        co.showPosition();
+        System.out.println("翻牌");
+    }
+
+
+    /* 交換按鈕(所有資料) */
+    private void switchChess(chessObject co){
         System.out.println(co.playerColor + " " + co.status + " " + co.x + " " + co.y + " " + co.no);
         System.out.println(tchessObject.playerColor + " " + tchessObject.status + " " + tchessObject.x + " " + tchessObject.y + " " + tchessObject.no);
         // 暫存
