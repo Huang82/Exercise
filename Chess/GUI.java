@@ -21,22 +21,28 @@ public class GUI implements ActionListener{
     };
 
     JPanel mainPan = new JPanel();
-
+    
     ArrayList<chessObject> chessData = new ArrayList<chessObject>();
     ArrayList<chessObject> TchessData = new ArrayList<chessObject>();
+
+    ArrayList<Integer> rangeInt = new ArrayList<Integer>();
+
+    JButton reset = new JButton(new ImageIcon(".\\Image\\reset.png"));
 
     // 暫存棋(選擇)
     chessObject tchessObject = null;
 
     public GUI() {        
         frm.setSize(1000, 700);
-        background.setBounds(-15, -50, 1000, 700);
-        background.setLayout(null);
-        
+    
+
         // init
         new roundColor();
-
+        
         // 背景變透明以看得到背景
+        background.setBounds(-15, -50, 1000, 700);
+        background.setLayout(null);
+        mainPan.removeAll();
         mainPan.setOpaque(false);
         mainPan.setLayout(new GridBagLayout());
         mainPan.setBounds(background.getBounds());
@@ -49,46 +55,65 @@ public class GUI implements ActionListener{
         mainPan.add(roundColor.pan, c1);
 
         // 象棋初始化
-        chessObjectInit();
-        setChess();
+        this.chessObjectInit();
+        this.setRangeInt();
+        this.setChess();
 
+        // 置放重置鍵
+        c1 = new GridBagConstraints();
+        c1 = new GridBagConstraints();
+        c1.gridx = 6;
+        c1.gridy = 5;
+        c1.gridwidth = 1;
+        c1.gridheight = 1;
+        c1.anchor = GridBagConstraints.CENTER;
+        
+        reset.setName("reset");
+        reset.setContentAreaFilled(false);
+        reset.setBorder(null);
+        reset.addActionListener(this);
+        mainPan.add(reset, c1);
+
+        
         background.add(mainPan);
-
+        
         frm.getContentPane().add(background);
         frm.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frm.setVisible(true);
     }
-
+    
+    /* 創建將棋物件 */
     private void chessObjectInit(){
-        chessObject.id = 0;
-        chessData.clear();
-        TchessData.clear();
+        roundColor.reset();
         for (chessWeight c : chessWeight.values()) {
-
+            
             if (c.no.equals(chessWeight.black_1.no) || c.no.equals(chessWeight.red_1.no)) {
                 // 產生兵與卒各5個
                 for (int i = 0 ; i < 5 ; i++){
                     chessObject co = new chessObject(c.no, c.weight, c.URL, c.playerColor);
+                    chessObject Tco = new chessObject(c.no, c.weight, c.URL, c.playerColor);
                     chessData.add(co); 
-                    TchessData.add(co);       
+                    TchessData.add(Tco);       
                 }
             } else if(c.no.equals(chessWeight.black_6.no) || c.no.equals(chessWeight.red_6.no)) {
                 // 產生帥與將
                 chessObject co = new chessObject(c.no, c.weight, c.URL, c.playerColor);
+                chessObject Tco = new chessObject(c.no, c.weight, c.URL, c.playerColor);
                 chessData.add(co);
-                TchessData.add(co); 
+                TchessData.add(Tco); 
             } else {
                 // 產生其他的各2個
                 for(int i = 0 ; i < 2 ; i++){
                     chessObject co = new chessObject(c.no, c.weight, c.URL, c.playerColor);
+                    chessObject Tco = new chessObject(c.no, c.weight, c.URL, c.playerColor);
                     chessData.add(co);
-                    TchessData.add(co); 
+                    TchessData.add(Tco); 
                 }
             }
-
+            
         }
     }
-
+    /* 擺放象棋位置(依序) */
     private void setChess(){
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 8; j++) {
@@ -99,28 +124,75 @@ public class GUI implements ActionListener{
                 c.gridwidth = 1;
                 c.gridheight = 1;
                 c.anchor = GridBagConstraints.CENTER;
-                /* 隨機抽取按鈕依序設置座標 */
-                int t =  (int)(TchessData.size() * Math.random());
-                System.out.println(t);
-                chessObject co = TchessData.remove(t);
+                
+                chessObject co = TchessData.get(rangeInt.remove(0));
                 co.setPosition(j, i);
                 co.but.addActionListener(this);
                 mainPan.add(co.but, c);
+
+                /* 隨機抽取按鈕依序設置座標 */
+                // int t =  (int)(TchessData.size() * Math.random());
+                // System.out.println(t);
+                // chessObject co = TchessData.remove(t);
+                // co.setPosition(j, i);
+                // co.but.addActionListener(this);
+                // mainPan.add(co.but, c);
             }
         }
     }
+    
+    /* 隨機產生設置將棋位子的亂數 */
+    private void setRangeInt() {
+        rangeInt.clear();
+        for (int i = 31 ; i >= 0 ; i--){
+            this.rangeInt.add(i);
+        }
+
+        ArrayList<Integer> t = new ArrayList<Integer>();
+        for (int i = 0 ; i < 32 ; i++) {
+            int Tint = (int)(Math.random() * rangeInt.size()); 
+            t.add(rangeInt.remove(Tint));
+            System.out.println(t.get(i));
+        }
+        rangeInt = t;
+    }
+
+    /* 使用亂數來亂數設置位置賦予值 */
+    private void resetChess() {
+        for (int i = 0 ; i < 32 ; i++) {
+            chessObject t = chessData.get(rangeInt.remove(0));
+            TchessData.get(i).chessId = t.chessId;
+            TchessData.get(i).no = t.no;   // 棋名稱
+            TchessData.get(i).status = t.status;   // 棋狀態
+            TchessData.get(i).weight = t.weight;  // 棋權重
+            TchessData.get(i).URL = t.URL;  // 棋圖片位置
+            TchessData.get(i).playerColor = t.playerColor;  // 棋子顏色(哪一方)
+            TchessData.get(i).but.setName(t.but.getName());
+            TchessData.get(i).but.setIcon(t.but.getIcon());
+        }
+
+    }
+
 
     @Override
     public void actionPerformed(ActionEvent e) {
         
         JButton but = (JButton)e.getSource();
-        chessObject co = (chessObject)this.chessData.stream()
-                            .filter(c -> c.chessId.equals(but.getName()))
+        chessObject co = (chessObject)this.TchessData.stream()
+        .filter(c -> c.chessId.equals(but.getName()))
                             .findFirst().orElse(null);
         // 是否有人贏
         boolean redWin = false;
         boolean blackWin = false;
         
+        // 重置鈕
+        if (but.equals(reset)) {
+            this.setRangeInt();
+            this.resetChess();
+            System.out.println("重置");
+            return;
+        }
+
         System.out.println(co.playerColor + " " + co.status + " " + co.x + " " + co.y + " " + co.no);
 
         /* 暫存是否為null(選取棋) */
@@ -230,21 +302,21 @@ public class GUI implements ActionListener{
                     int max = Math.max(tchessObject.y, co.y);
                     int min = Math.min(tchessObject.y, co.y);
                     // stream整筆資料count為1(代表max到min之間只有一個棋子)
-                    s = chessData.stream().filter(c -> (min < c.y && c.y < max) && 
+                    s = TchessData.stream().filter(c -> (min < c.y && c.y < max) && 
                                                 (c.x == tchessObject.x) &&
                                                 (c.status == chessStatus.miss.no || c.status == chessStatus.open.no))
                                                 .count() == 1;
-                    System.out.println(chessData.stream().filter(c -> (min < c.y && c.y < max) && 
+                    System.out.println(TchessData.stream().filter(c -> (min < c.y && c.y < max) && 
                     (c.status == chessStatus.miss.no || c.status == chessStatus.open.no))
                     .count() == 1);
                 } else {
                     int max = Math.max(tchessObject.x, co.x);
                     int min = Math.min(tchessObject.x, co.x);
-                    s = chessData.stream().filter(c -> (min < c.x && c.x < max) && 
+                    s = TchessData.stream().filter(c -> (min < c.x && c.x < max) && 
                                                  (c.y == tchessObject.y) &&
                                                  (c.status == chessStatus.miss.no || c.status == chessStatus.open.no))
                                                  .count() == 1;
-                    System.out.println(chessData.stream().filter(c -> (min < c.x && c.x < max) && 
+                    System.out.println(TchessData.stream().filter(c -> (min < c.x && c.x < max) && 
                     (c.status == chessStatus.miss.no || c.status == chessStatus.open.no))
                     .count());
                 }
@@ -283,10 +355,10 @@ public class GUI implements ActionListener{
 
         /* 判斷誰贏了 */
         // 哪一方air先到16就是對方獲勝
-        blackWin = chessData.stream().filter(a -> a.status.equals(chessStatus.air.no) &&
+        blackWin = TchessData.stream().filter(a -> a.status.equals(chessStatus.air.no) &&
                                          a.playerColor.equals(chessWeight.PlayerColor.red.name()))
                                          .count() == 16;
-        redWin = chessData.stream().filter(a -> a.status.equals(chessStatus.air.no) &&
+        redWin = TchessData.stream().filter(a -> a.status.equals(chessStatus.air.no) &&
                                         a.playerColor.equals(chessWeight.PlayerColor.black.name()))
                                         .count() == 16;
         
