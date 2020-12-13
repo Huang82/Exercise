@@ -8,14 +8,20 @@ import javax.swing.*;
 public class roundColor {
 
     public static JPanel pan = new JPanel();
-    public static status s = status.miss; 
-    private static JLabel lb = new JLabel(new ImageIcon(status.miss.URL));
+    public static status s; // 行動方狀態
+    private static JLabel lb = new JLabel();
 
     public roundColor(){
+        reset();
+        pan.add(lb);
+    }
+
+    public static void reset() {
+        s = status.miss;
         pan.setLayout(new FlowLayout(FlowLayout.CENTER));
         pan.setOpaque(false);
+        lb.setIcon(new ImageIcon(status.miss.URL));
         lb.setOpaque(false);
-        pan.add(lb);
     }
 
     // 回合方輪流

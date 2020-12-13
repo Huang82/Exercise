@@ -173,6 +173,12 @@ public class GUI implements ActionListener{
 
     }
 
+    private void resetGame() {
+        roundColor.reset();
+        this.setRangeInt();
+        this.resetChess();
+        System.out.println("重置");
+    }
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -187,9 +193,7 @@ public class GUI implements ActionListener{
         
         // 重置鈕
         if (but.equals(reset)) {
-            this.setRangeInt();
-            this.resetChess();
-            System.out.println("重置");
+            this.resetGame();
             return;
         }
 
@@ -368,6 +372,18 @@ public class GUI implements ActionListener{
 
         if (blackWin) {
             System.out.println("黑方獲勝");
+        }
+
+        if (redWin || blackWin) {
+            String str[] = {"重玩", "離開"};
+            int a = JOptionPane.showOptionDialog(null, String.format("%s獲勝!!", redWin ? "紅方":"黑方"), "Win!!", 
+                                                    JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, str, "exit");
+            if (a == JOptionPane.CLOSED_OPTION || a == JOptionPane.YES_NO_OPTION) {
+                this.resetGame();
+            } else {
+                System.exit(0);
+            }
+
         }
 
     }
