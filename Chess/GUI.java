@@ -2,7 +2,6 @@
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.event.*;
 
 import java.util.ArrayList;
 
@@ -377,7 +376,7 @@ public class GUI implements ActionListener{
         if (redWin || blackWin) {
             String str[] = {"重玩", "離開"};
             int a = JOptionPane.showOptionDialog(null, String.format("%s獲勝!!", redWin ? "紅方":"黑方"), "Win!!", 
-                                                    JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, str, "exit");
+                                                    JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, str, "exit");
             if (a == JOptionPane.CLOSED_OPTION || a == JOptionPane.YES_NO_OPTION) {
                 this.resetGame();
             } else {
