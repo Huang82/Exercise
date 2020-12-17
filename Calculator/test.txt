@@ -1,0 +1,2 @@
+javac -encoding UTF-8 -d bin Main.java
+java -cp bin Main
