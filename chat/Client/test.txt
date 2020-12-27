@@ -1,0 +1,2 @@
+javac -encoding UTF-8 -d ./Client/bin Client/Main.java
+java -cp ./Client/bin Client/Main

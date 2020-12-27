@@ -1,0 +1,2 @@
+javac -encoding UTF-8 -d ./Server/bin Server/Main.java
+java -cp ./Server/bin Server/Main
