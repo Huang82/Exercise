@@ -9,6 +9,7 @@ import java.net.*;
 public class serverThread extends Thread implements Runnable {
 
     private ServerSocket ss;
+    private String name = Integer.toString((int)(Math.random() * 100));
     public Socket c;
     private InputStreamReader sr;
     private BufferedReader br;
@@ -32,72 +33,37 @@ public class serverThread extends Thread implements Runnable {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-
-         // 定時傳送目前上線人數
-         new Thread(new Runnable(){
-
-            @Override
-            public void run() {
-                try {
-                    while (true) {
-                        // 發送目前人數
-                        bw.write(String.format("people/%d\r\n", server.count));
-                        bw.flush();
-                        Thread.sleep(1000);
-                    }
-                } catch (Exception ex) {
-                    closeClient();
-                    server.removePeople();
-                    stopServer();
-                }
-
-            }
-            
-        }).start();
-
     }
     
+    // 隨時接收client的訊息
     @Override
     public void run() {
         try {
             String str;
             while (true) {
+                // 讀取Client傳過來的資料
                 str = br.readLine();
-                server.mess.add(str);
+                // 接收到傳送給全部的人
+                server.allSendMess(str);
+                System.out.println("有人發訊息了");
                 System.out.println(str);
-
                 // 接收傳到各個人上
                 // test
-                server.sendAll = true;
             }
 
         } catch (Exception ex) {
-            closeClient();
-            server.removePeople();
-            stopServer();         
+            try {
+                c.close();
+                System.out.println(getClientName() + "以斷線");        
+            } catch (Exception e) {
+                System.out.println("斷線失敗");
+            }
         }
 
     }
 
-    // 如果有人斷線就人數減
-    private synchronized void closeClient() {
-        try {
-            c.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        System.out.println("有人跳出或者出問題了");
-        server.count--;
-        System.out.printf("目前總共有%d個人在聊天室\r\n", server.count);
-    }
-
-    private void stopServer() {
-        try{
-            this.interrupt();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            System.out.println("停止出問題了");
-        }
+    public String getClientName() {
+        return this.name;
     }
 
 }

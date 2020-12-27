@@ -40,7 +40,6 @@ class client {
                 public void run() {
                     String str;
                     while(true){
-                        System.out.println("run");
                         try{
                             // client讀取server傳來的訊息
                             str = read.readLine();
@@ -48,7 +47,7 @@ class client {
                             // 狀態機
                             state(str);
 
-                            System.out.println(str);
+                            // System.out.println(str);
                             Thread.sleep(500);
                         } catch (Exception ex) {
                             System.out.println("123");
@@ -100,8 +99,13 @@ class client {
                 GUI.addMess(String.format("%s ： %s", name, mess));
                 break;
             case "people":
-                String num = t[1];
-                System.out.println(num);
+                try {
+                    String num = t[1];
+                    String[] arrName = t[2].split(",");
+                    GUI.addClientName(num, arrName);
+                } catch (Exception ex) {
+                    System.out.println("state people name air");
+                }
                 break;
             // 伺服器直接給予訊息
             default:

@@ -13,15 +13,16 @@ public class GUI {
     private static JTextArea tex = new JTextArea(); // 聊天視窗
     private static String str = "";                 // 聊天視窗裡的訊息
     
-    private JTextField chat = new JTextField();
-    private JButton send = new JButton("傳送");
+    private JTextField chat = new JTextField();     // 輸入欄
+    private JButton send = new JButton("傳送");     // 傳送鈕
     
-    private JTextField peopleText = new JTextField();
-    private DefaultTableModel dlm;
-    private JTable peopleName;
+    private static JTextField peopleText = new JTextField();   // 顯示現在有多少人在線
+    private static DefaultTableModel dlm;               // 讓JTable變表格欄
+    private JTable peopleName;                          // 表格欄裡面的名字欄
 
     public GUI() {
-        frm.setBounds(200, 200, 600, 600);
+        frm.setBounds(200, 200, 465, 290);
+        frm.getContentPane().setBackground(Color.black);
         GridBagLayout gbl = new GridBagLayout();
         frm.getContentPane().setLayout(gbl);
         gbl.columnWidths = new int[] {75, 75, 75, 75, 75, 75};
@@ -33,12 +34,11 @@ public class GUI {
         c.gridy = 0;
         c.gridwidth = 2;
         c.gridheight = 1;
-        c.fill = GridBagConstraints.HORIZONTAL;
+        c.fill = GridBagConstraints.BOTH;
         peopleText.setEditable(false);
-        peopleText.setOpaque(false);
         peopleText.setBorder(null);
         peopleText.setHorizontalAlignment(JTextField.CENTER);
-        peopleText.setText(String.format("聊天室目前上線人數：%d", 20));
+        peopleText.setText(String.format("聊天室目前上線人數：%d", 0));
         frm.getContentPane().add(peopleText, c);
 
         // 聊天室進來聊天的人清單
@@ -63,11 +63,15 @@ public class GUI {
         // table加進清單模式
         peopleName = new JTable(dlm);
         peopleName.setBackground(Color.white);
-        frm.getContentPane().add(new JScrollPane(peopleName), c);
+        JScrollPane jsp = new JScrollPane(peopleName);
+        frm.getContentPane().add(jsp, c);
+        
+        // 增加Client上線列表
+        // for (int i=0 ;i<100 ; i++)
+        //     dlm.addRow(new String[] {"Huang82"});
+        // dlm.addRow(new String[] {"abccddd"});
+        
 
-        // test
-        dlm.addRow(new String[] {"Huang82"});
-        dlm.addRow(new String[] {"abccddd"});
 
         // 對話框
         c = new GridBagConstraints();
@@ -92,6 +96,11 @@ public class GUI {
         c.gridwidth = 3;
         c.gridheight = 1;
         c.fill = GridBagConstraints.BOTH;
+        chat.addActionListener(e -> {
+            client.mess = chat.getText();
+            client.send();
+            chat.setText("");
+        });
         frm.getContentPane().add(chat, c);
         
         // 傳送鈕
@@ -115,8 +124,35 @@ public class GUI {
     }
 
 
+    // 訊息新增
     public static void addMess(String s) {
         str += s + "\r\n";
         tex.setText(str);
+        TextSetCaret(tex);
+    }
+
+    // 更新現在上線人數和列表
+    public static void addClientName(String num, String[] arrName) {
+
+        // 更新現在有多少人在線
+        peopleText.setText(String.format("聊天室目前上線人數：%s", num));
+
+        // 刪除所有的Client列表
+        for (int i = dlm.getRowCount() - 1 ; i >= 0 ; i--) {
+            dlm.removeRow(i);
+        }
+        // 增加現在所上線的Client列表名字
+        for (String name : arrName) {
+            dlm.addRow(new String[] {name});
+        }
+
+    }
+
+
+    // 讓卷軸更新
+    public static void TextSetCaret(JTextArea ta) {
+        // 取得最新的位置
+        int t = ta.getDocument().getLength();
+        ta.setCaretPosition(t);
     }
 }
