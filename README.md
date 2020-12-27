@@ -1,3 +1,3 @@
 # Exercise
 
-自用
+Java 練習
