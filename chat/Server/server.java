@@ -9,6 +9,7 @@ public class server {
     public static int count = 0;    // 上線人數
     public static ArrayList<serverThread> serverThreadsData = new ArrayList<serverThread>();   // 連線的人的資料
     public static ArrayList<serverThread> removeData = new ArrayList<serverThread>();
+    public static ArrayList<clientData> clientDatas = new ArrayList<clientData>();
     public static ArrayList<Thread> arrThread = new ArrayList<Thread>(); 
     public static ArrayList<String> mess = new ArrayList<String>();                     // 訊息資料
     public static boolean sendAll = false;                                              // 如果有人發送訊息就true
@@ -111,6 +112,26 @@ public class server {
                 System.out.println(st.getClientName() + "以斷線，所以無法傳給他");
             }
         }
+    }
+
+    // 確認名字是否有重複
+    public static boolean checkName(String name) {
+        boolean s = clientDatas.stream().anyMatch(e -> e.name.equals(name));
+        return s;
+    }
+
+    // 檢查帳號是否有重複
+    public static boolean checkAccount(String account) {
+        boolean s = clientDatas.stream().anyMatch(e -> e.account.equals(account));
+        return s;
+    }
+
+    // 登入檢查
+    public static clientData checkSignIn(String account, String password) {
+        clientData s = (clientData)clientDatas.stream()
+                        .filter(e -> (e.account.equals(account) && e.password.equals(password)))
+                        .findFirst().orElse(null);
+        return s;
     }
 
 }

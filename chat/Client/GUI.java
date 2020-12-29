@@ -22,6 +22,8 @@ public class GUI {
 
     public GUI() {
         frm.setBounds(200, 200, 465, 290);
+        frm.setLocationRelativeTo(null);
+        frm.setResizable(false);
         frm.getContentPane().setBackground(Color.black);
         GridBagLayout gbl = new GridBagLayout();
         frm.getContentPane().setLayout(gbl);

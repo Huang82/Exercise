@@ -8,7 +8,7 @@ import java.net.*;
 
 class client {
     
-    public static playerData testPlayer = new playerData("Huang82", "21118950", "123");
+    public static ClientData Client;
     public static String mess = "";
 
     public static Socket sk;
@@ -17,21 +17,26 @@ class client {
     public static InputStreamReader st;        // 從伺服器接收訊息
     public static BufferedReader read;         // 從伺服器接收訊息
 
-    client() {
+    client(ClientData cd) {
         System.out.println("Client端上線");
         // Client連上到Server
+        Client = cd;
         connect();
     }
 
     // Connect
     public static void connect() {
         try{
-            sk = new Socket("127.0.0.1", 9999);
+            sk = new Socket(IpPort.add.ip, IpPort.add.port);
             bw = new OutputStreamWriter(sk.getOutputStream());
             br = new BufferedWriter(bw);
 
             st = new InputStreamReader(sk.getInputStream());
             read = new BufferedReader(st);
+
+            // 傳送名字
+            br.write(String.format("name/%s\r\n", Client.name));
+            br.flush();
 
             // server傳送給Client的執行序
             new Thread(new Runnable(){
@@ -82,7 +87,7 @@ class client {
     
     // 打包傳給伺服器的String
     private static void api() {
-        mess = "chat/" + testPlayer.name + "/" + mess + "\r\n";
+        mess = "chat/" + Client.name + "/" + mess + "\r\n";
         System.out.println(mess);
     }
 
