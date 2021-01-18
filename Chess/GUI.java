@@ -24,9 +24,12 @@ public class GUI implements ActionListener{
     ArrayList<chessObject> chessData = new ArrayList<chessObject>();
     ArrayList<chessObject> TchessData = new ArrayList<chessObject>();
 
+    ArrayList<recoveryChess> recoveryChessData = new ArrayList<recoveryChess>();
+
     ArrayList<Integer> rangeInt = new ArrayList<Integer>();
 
     JButton reset = new JButton(new ImageIcon(".\\Image\\reset.png"));
+    JButton recovery = new JButton(new ImageIcon(".\\Image\\recovery.png"));
 
     // 暫存棋(選擇)
     chessObject tchessObject = null;
@@ -60,7 +63,6 @@ public class GUI implements ActionListener{
 
         // 置放重置鍵
         c1 = new GridBagConstraints();
-        c1 = new GridBagConstraints();
         c1.gridx = 6;
         c1.gridy = 5;
         c1.gridwidth = 1;
@@ -70,9 +72,27 @@ public class GUI implements ActionListener{
         reset.setName("reset");
         reset.setContentAreaFilled(false);
         reset.setBorder(null);
-        reset.addActionListener(this);
+        reset.addActionListener(e ->{
+            // 重置
+            this.resetGame();
+        });
         mainPan.add(reset, c1);
 
+        c1 = new GridBagConstraints();
+        c1.gridx = 1;
+        c1.gridy = 5;
+        c1.gridwidth = 1;
+        c1.gridheight = 1;
+        c1.anchor = GridBagConstraints.CENTER;
+
+        recovery.setName("recovery");
+        recovery.setContentAreaFilled(false);
+        recovery.setBorder(null);
+        recovery.addActionListener(e -> {
+            // 悔棋
+            this.onRecovery();
+        });
+        mainPan.add(recovery, c1);
         
         background.add(mainPan);
         
@@ -176,6 +196,7 @@ public class GUI implements ActionListener{
         roundColor.reset();
         this.setRangeInt();
         this.resetChess();
+        this.recoveryChessData.clear();
         System.out.println("重置");
     }
 
@@ -190,11 +211,7 @@ public class GUI implements ActionListener{
         boolean redWin = false;
         boolean blackWin = false;
         
-        // 重置鈕
-        if (but.equals(reset)) {
-            this.resetGame();
-            return;
-        }
+        
 
         System.out.println(co.playerColor + " " + co.status + " " + co.x + " " + co.y + " " + co.no);
 
@@ -251,6 +268,8 @@ public class GUI implements ActionListener{
             int y = Math.abs(co.y - tchessObject.y);
             // 兩者座標加起來不超過1才可移動
             if (x + y <= 1){
+                // 新增悔棋
+                this.addRecoveryChess(co, tchessObject);
                 System.out.println("移動");
                 // 暫存復原無選取
                 tchessObject.setIcon();
@@ -337,6 +356,8 @@ public class GUI implements ActionListener{
                 return;
             }
 
+            this.addRecoveryChess(co, tchessObject);
+
             // 比大小判斷 (先測試甚麼吃甚麼都可以吃)
             co.status = chessStatus.air.no;
             // 被吃那方改為空圖片
@@ -387,8 +408,31 @@ public class GUI implements ActionListener{
 
     }
 
+    /* 增加悔棋傳入值為一個物件 */
+    private void addRecoveryChess(chessObject co) {
+        // 紀錄悔棋
+        System.out.println("創建悔棋");
+        recoveryChess temp = new recoveryChess(co);
+        this.recoveryChessData.add(temp);
+
+    }
+
+    /* 增加悔棋傳入值為兩個物件 */
+    private void addRecoveryChess(chessObject co1 , chessObject co2) {
+        // 紀錄悔棋
+        System.out.println("創建悔棋");
+        recoveryChess temp = new recoveryChess(co1, co2);
+        this.recoveryChessData.add(temp);
+
+    }
+
+
     /* 翻牌 */
     private void turnChrss(chessObject co) {
+
+        // 紀錄悔棋
+        this.addRecoveryChess(co);
+
         co.status = chessStatus.open.no;
         co.setIcon();
         co.showPosition();
@@ -429,5 +473,30 @@ public class GUI implements ActionListener{
         tchessObject.playerColor = t.playerColor;  // 棋子顏色(哪一方)
         tchessObject.but.setName(t.but.getName());
         tchessObject.but.setIcon(t.but.getIcon());
+    }
+
+    private void onRecovery() {
+        
+        if (recoveryChessData.isEmpty()){
+            System.out.println("無法悔棋已經回到剛開始的棋盤了");
+            return;
+        }
+
+        if (tchessObject != null) {
+            tchessObject.setIcon();
+            tchessObject = null;
+        }
+
+        roundColor.switchRoundColor(null);
+
+        recoveryChess temp = recoveryChessData.remove(recoveryChessData.size() - 1);
+
+        temp.recovery();
+
+        // list裡無悔棋資料返回初始值
+        if (recoveryChessData.isEmpty()) {
+            roundColor.reset();
+        }
+
     }
 }

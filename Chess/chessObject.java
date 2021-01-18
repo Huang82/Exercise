@@ -41,6 +41,7 @@ public class chessObject {
 
     public void setAir() {
         this.but.setIcon(new ImageIcon(".\\Image\\air.png"));
+        this.URL = ".\\Image\\air.png";
     }
     public void setPosition (int x , int y) {
         this.x = x;
