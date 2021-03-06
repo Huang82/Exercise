@@ -44,7 +44,7 @@ public class Main {
 
         System.out.println("card2: " + cal(card2));
 
-        String[] card3 = {"a1", "a2", "a3", "c3", "c3", "c3", "c3", 
+        String[] card3 = {"a1", "a2", "a3", "c3", "c2", "c3", "c3", 
         "c4", "c5", "c5", "c5", "c5", "c6", "c7", "c7", "c8", "c9"};
 
         System.out.println("card3: " + cal(card3));
@@ -78,6 +78,16 @@ public class Main {
         "a3", "a4", "a4", "a5", "a5", "a6", "a6", "a6", "a7", "a8"};
 
         System.out.println("card9: " + cal(card9));
+
+
+        String[] card10 = {"a1", "a1", "a1", "a1", "a2", "a2", "a2",
+         "a2", "a5", "a5", "a5", "a5", "a7", "a7", "a7", "a3", "a3"};
+
+         System.out.println("card10: " + cal(card10));
+
+         String[] card11 = {"b4", "b4", "b4", "b5" , "b5"};
+
+          System.out.println("card11: " + cal(card11));
     }
     
     public static String cal(String[] card) {
@@ -128,6 +138,7 @@ public class Main {
         /* 一四七、二五八、三六九牌堆預設為0 */
         int stack[] = new int[3];
         boolean win = true;
+        boolean cg = false; // 槓檢查路線的boolean
 
         /* list大小為0 return true */
         if (arr.size() == 0) {
@@ -156,6 +167,25 @@ public class Main {
                 ArrayList<String> t = new ArrayList<String>(arr);
                 /* 先拿掉眼 */
                 String str = t.remove(i);
+                
+
+                ArrayList<String> tempArrG = new ArrayList<String>(arr);
+                /* 檢查是否是槓 */
+                if (tempArrG.remove(str) && tempArrG.remove(str) && tempArrG.remove(str) && tempArrG.remove(str)) {
+                    /* 刪除4次加回來 */
+                    tempArrG.add(str);
+                    tempArrG.add(str);    
+                    tempArrG.add(str);
+                    tempArrG.add(str);
+
+                    cg = checkG(tempArrG);
+
+                    if (cg) {
+                        break;
+                    }
+                }
+
+
                 // System.out.println(str + "   " + t.indexOf(str));
                 if (t.indexOf(str) != -1) {
                     t.remove(str);
@@ -166,11 +196,15 @@ public class Main {
                     }
                 } 
                 
+
+                if (i == arr.size() -1) {
+                    return false;
+                }
             }
 
         } 
-
-        return win;
+        // System.out.println("win: " + win + "  cg: " + cg);
+        return (win || cg)?true:false;
     }
 
     public static boolean deepCheck(ArrayList<String> arr) {
@@ -184,13 +218,17 @@ public class Main {
             String t = arr.get(i);
             int index = arr.indexOf(t);
             if (arr.get(index).equals(arr.get(index+1)) && arr.get(index).equals(arr.get(index+2))) {
+                /* 做更深層計算(可能性的方法) */
+                boolean ddc = doubleDeepCheck(new ArrayList<String>(arr));
                 arr.remove(index);
                 arr.remove(index);
                 arr.remove(index);
-                if (arr.size() == 0) {
+                
+
+                if (arr.size() == 0 || ddc) {
                     return true;
                 } else {
-                    return deepCheck(arr);  /* todo: 如果有刻刪一次之後如果裡面還有就做拿掉眼的步驟 */
+                    return deepCheck(arr);
                 }
             }
         }
@@ -211,6 +249,61 @@ public class Main {
                 } else {
                     return deepCheck(arr);
                 }
+            }
+        }
+
+        return false;
+    }
+
+    public static boolean doubleDeepCheck(ArrayList<String> arr) {
+
+        /* 檢查順子 */
+        for (int i=0 ; i<arr.size()-2 ; i++) {
+            String t = arr.get(i);
+            int index = arr.indexOf(t);
+            String s1 = arr.get(index).charAt(0) + "" + (char)(arr.get(index).charAt(1)+1);
+            String s2 = arr.get(index).charAt(0) + "" + (char)(arr.get(index).charAt(1)+2);
+            if (arr.indexOf(s1) != -1 && arr.indexOf(s2) != -1) {
+                arr.remove(index);
+                arr.remove(arr.indexOf(s1));
+                arr.remove(arr.indexOf(s2));
+                if (arr.size() == 0) {
+                    return true;
+                } else {
+                    return deepCheck(arr);
+                }
+            }
+        }
+
+        return false;
+    }
+    
+    /* 檢查槓 */
+    public static boolean checkG(ArrayList<String> arr) {
+
+        for (int i=0 ; i<arr.size() ; i++) {
+            String t = arr.get(i);
+            int index = arr.indexOf(t);
+            if (index != -1 && (arr.get(index+1).equals(t) && arr.get(index+2).equals(t) && arr.get(index+3).equals(t))) {
+                
+                // for (String s : arr) {
+                //     System.out.print(s + " ");
+                // }
+                // System.out.println();
+
+                arr.remove(index);
+                arr.remove(index);
+                arr.remove(index);
+                arr.remove(index);
+    
+                if (arr.size() == 0) {
+                    return true;
+                } else if (arr.size() <= 2) {
+                    return false;
+                } else {
+                    return stackCal(arr);
+                }
+
             }
         }
 
